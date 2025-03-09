@@ -1,0 +1,40 @@
+[
+  {
+    "menuList": [
+      {
+        "icon": "assets/sidebar/dashboard.svg",
+        "menuName": "Dashboard",
+        "path": "/"
+      },
+      {
+        "icon": "assets/sidebar/invoice.svg",
+        "menuName": "Limites de sécurité",
+        "path": "/invoice"
+      },
+      {
+        "icon": "assets/sidebar/TestLogo.svg",
+        "menuName": "Tests",
+        "childList": [
+          {
+            "menuName": "Controle Manualle ",
+            "path": "/manual-control"
+          },
+          {
+            "menuName": "Controle Automatique ",
+            "path": "/automatic-control"
+          }
+        ]
+      },
+      {
+        "icon": "assets/sidebar/setting.svg",
+        "menuName": "Settings",
+        "path": "/settings"
+      },
+      {
+        "icon": "assets/sidebar/profile.svg",
+        "menuName": "Profile",
+        "path": "/profile"
+      },
+    ]
+  }
+]
