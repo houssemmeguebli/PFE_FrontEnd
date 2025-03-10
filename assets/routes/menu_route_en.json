@@ -1,27 +1,27 @@
 [
-
   {
     "menuList": [
-
       {
-        "icon": "assets/sidebar/dashboard.svg",
+        "icon": "assets/sidebar/chart.svg",
         "menuName": "Dashboard",
         "path": "/"
       },
       {
-        "icon": "assets/sidebar/invoice.svg",
+        "icon": "assets/sidebar/dashboard.svg",
         "menuName": "Safety Cutoffs",
-        "path": "/invoice"
+        "path": "/safety"
       },
       {
-        "icon": "assets/sidebar/TestLogo.svg",
+        "icon": "assets/sidebar/page.svg",
         "menuName": "Tests",
         "childList": [
           {
+            "icon": "assets/sidebar/setting.svg",
             "menuName": "Manual Control",
             "path": "/manual-control"
           },
           {
+            "icon": "assets/sidebar/task.svg",
             "menuName": "Automatic Control",
             "path": "/automatic-control"
           }
@@ -37,7 +37,6 @@
         "menuName": "Profile",
         "path": "/profile"
       }
-
     ]
   }
 ]

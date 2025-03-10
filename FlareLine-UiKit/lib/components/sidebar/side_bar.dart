@@ -15,7 +15,7 @@ class SideBarWidget extends StatefulWidget {
   final Widget? footerWidget;
   final double? logoFontSize;
 
-  SideBarWidget({
+  const SideBarWidget({
     super.key,
     this.darkBg,
     this.lightBg,
@@ -36,31 +36,53 @@ class _SideBarWidgetState extends State<SideBarWidget> {
   final ValueNotifier<String> expandedMenuName = ValueNotifier('');
   final WebSocketService _webSocketService = WebSocketService();
 
-  // Sensor values initialized as null-safe empty values
+  // Limited to 6 sensor values with proper naming and units
   Map<String, String> sensorValues = {
-    "Temperature": "0",
-    "Pressure": "0",
-    "Tension": "0",
-    "Courant": "0",
-    "Couple": "0",
-    "Vibration": "0",
+    "Temperature": "0 °C",
+    "Pressure": "0 hPa",
+    "Tension": "0 V",
+    "Current": "0 A",
+    "Torque": "0 N·m",
+    "Vibration": "0 m/s²",
   };
 
   @override
   void initState() {
     super.initState();
-    _webSocketService.stream.listen((data) {
-      if (data.containsKey('event') && data['event'] == 'randomValue') {
-        setState(() {
-          sensorValues["Temperature"] = "${data['value']}°C";
-          sensorValues["Pressure"] = "${(data['value'] / 10).toStringAsFixed(2)} hPa";
-          sensorValues["Tension"] = "${(data['value'] ).toStringAsFixed(2)} V";
-          sensorValues["Courant"] = "${(data['value'] / 50).toStringAsFixed(2)} A";
-          sensorValues["Couple"] = "${(data['value'] / 100).toStringAsFixed(2)} N";
-          sensorValues["Vibration"] = "${(data['value'] / 200).toStringAsFixed(2)} ";
-        });
-      }
-    });
+    _setupWebSocketListener();
+  }
+
+  void _setupWebSocketListener() {
+    _webSocketService.stream.listen(
+          (data) {
+        if (mounted) {
+          setState(() {
+            // Map only the 6 selected sensor values from WebSocket data
+            if (data.containsKey('tension')) {
+              sensorValues["Tension"] = "${data['tension'].toStringAsFixed(2)} V";
+            }
+            if (data.containsKey('current')) {
+              sensorValues["Current"] = "${data['current'].toStringAsFixed(2)} A";
+            }
+            if (data.containsKey('couple')) {
+              sensorValues["Torque"] = "${data['couple'].toStringAsFixed(2)} N·m";
+            }
+            if (data.containsKey('temperature')) {
+              sensorValues["Temperature"] = "${data['temperature'].toStringAsFixed(1)} °C";
+            }
+            if (data.containsKey('vibration')) {
+              sensorValues["Vibration"] = "${data['vibration'].toStringAsFixed(2)} m/s²";
+            }
+            if (data.containsKey('saon')) {
+              sensorValues["Pressure"] = "${data['saon'].toStringAsFixed(2)} hPa";
+            }
+          });
+        }
+      },
+      onError: (error) {
+        debugPrint("WebSocket error in SideBar: $error");
+      },
+    );
   }
 
   @override
@@ -75,7 +97,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      color: (isDarkTheme ? widget.darkBg : Colors.white),
+      color: isDarkTheme ? widget.darkBg ?? Colors.grey[900] : widget.lightBg ?? Colors.white,
       width: widget.width ?? 280,
       child: Column(
         children: [
@@ -95,7 +117,6 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     );
   }
 
-  // Logo Widget
   Widget _logoWidget(BuildContext context, bool isDark) {
     return Row(
       children: [
@@ -115,7 +136,6 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     );
   }
 
-  // Side Menu List
   Widget _sideListWidget(BuildContext context, bool isDark) {
     if (widget.sideBarAsset == null) return const SizedBox.shrink();
 
@@ -140,11 +160,10 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     );
   }
 
-  // Menu Item Builder
   Widget itemBuilder(BuildContext context, int index, List listMenu, bool isDark) {
     var groupElement = listMenu.elementAt(index);
     List menuList = groupElement['menuList'];
-    String? groupName = groupElement['groupName']; // Nullable check
+    String? groupName = groupElement['groupName'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,24 +193,23 @@ class _SideBarWidgetState extends State<SideBarWidget> {
     );
   }
 
-  // Separator Builder
   Widget separatorBuilder(BuildContext context, int index) {
     return const Divider(height: 10, color: Colors.transparent);
   }
 
-  // Build Sensor List with WebSocket Dynamic Data
   Widget _buildSensorList(BuildContext context, bool isDark) {
     return Container(
       margin: const EdgeInsets.only(top: 2),
       padding: const EdgeInsets.symmetric(horizontal: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: sensorValues.entries.map((entry) => _buildSensorItem(entry.key, entry.value, isDark)).toList(),
+        children: sensorValues.entries
+            .map((entry) => _buildSensorItem(entry.key, entry.value, isDark))
+            .toList(),
       ),
     );
   }
 
-  // Build Single Sensor Item
   Widget _buildSensorItem(String name, String value, bool isDark) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),

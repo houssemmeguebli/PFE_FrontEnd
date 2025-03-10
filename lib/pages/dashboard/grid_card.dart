@@ -1,44 +1,19 @@
 import 'package:flareline/core/theme/global_colors.dart';
-import 'package:flareline/_services/websocket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flareline_uikit/components/card/common_card.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 
-class GridCard extends StatefulWidget {
+class GridCard extends StatelessWidget {
   final String name;
   final String unit;
+  final String value;
 
-  const GridCard({super.key, required this.name, required this.unit});
-
-  @override
-  _GridCardState createState() => _GridCardState();
-}
-
-class _GridCardState extends State<GridCard> {
-  final WebSocketService _webSocketService = WebSocketService();
-  String sensorValue = "0"; // Default value before data arrives
-
-  @override
-  void initState() {
-    super.initState();
-    _webSocketService.stream.listen((data) {
-      if (data.containsKey('event') && data['event'] == 'randomValue') {
-        // Ensure the value is treated as a double
-        double value = (data['value'] is int) ? (data['value'] as int).toDouble() : data['value'];
-
-        setState(() {
-          sensorValue = _formatSensorValue(widget.name, value);
-        });
-      }
-    });
-  }
-
-
-  @override
-  void dispose() {
-    _webSocketService.dispose();
-    super.dispose();
-  }
+  const GridCard({
+    super.key,
+    required this.name,
+    required this.unit,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -51,17 +26,17 @@ class _GridCardState extends State<GridCard> {
 
   // Content for Desktop
   Widget contentDesktopWidget(BuildContext context) {
-    return _itemCardWidget(context, widget.name, sensorValue, widget.unit);
+    return _itemCardWidget(context, name, value, unit);
   }
 
   // Content for Mobile
   Widget contentMobileWidget(BuildContext context) {
-    return _itemCardWidget(context, widget.name, sensorValue, widget.unit);
+    return _itemCardWidget(context, name, value, unit);
   }
 
   // Content for Tablet
   Widget contentTabletWidget(BuildContext context) {
-    return _itemCardWidget(context, widget.name, sensorValue, widget.unit);
+    return _itemCardWidget(context, name, value, unit);
   }
 
   // Common method to create the card
@@ -123,9 +98,9 @@ class _GridCardState extends State<GridCard> {
         return Icons.monitor_weight_outlined;
       case "tension":
         return Icons.bolt;
-      case "courant":
+      case "current":
         return Icons.electric_bolt;
-      case "couple":
+      case "torque":
         return Icons.settings_input_component;
       case "vibration":
         return Icons.vibration;
@@ -135,26 +110,6 @@ class _GridCardState extends State<GridCard> {
         return Icons.publish_sharp;
       default:
         return Icons.device_unknown; // Default icon for unknown sensors
-    }
-  }
-
-  // Helper method to format sensor values dynamically
-  String _formatSensorValue(String name, double value) {
-    switch (name.toLowerCase()) {
-      case "temperature":
-        return "${value.toStringAsFixed(1)}°C";
-      case "pressure":
-        return "${(value / 10).toStringAsFixed(2)} hPa";
-      case "tension":
-        return "${value.toStringAsFixed(2)} V";
-      case "courant":
-        return "${(value / 50).toStringAsFixed(2)} A";
-      case "couple":
-        return "${(value / 100).toStringAsFixed(2)} N·m";
-      case "vibration":
-        return "${(value / 200).toStringAsFixed(2)} m/s²";
-      default:
-        return "${value.toStringAsFixed(2)}"; // Default formatting for unknown sensors
     }
   }
 }

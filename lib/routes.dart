@@ -11,7 +11,7 @@ import 'package:flareline/pages/auth/sign_up/sign_up_page.dart' deferred as sign
 import 'package:flareline/pages/chart/chart_page.dart' deferred as chart;
 import 'package:flareline/pages/dashboard/Dashboard.dart';
 import 'package:flareline/pages/inbox/index.dart' deferred as inbox;
-import 'package:flareline/pages/invoice/invoice_page.dart' deferred as invoice;
+import 'package:flareline/pages/SafetyCutoff/SafetyCutoffScreen.dart' deferred as safety;
 import 'package:flareline/pages/profile/profile_page.dart' deferred as profile;
 import 'package:flareline/pages/resetpwd/reset_pwd_page.dart' deferred as resetPwd;
 import 'package:flareline/pages/setting/settings_page.dart' deferred as settings;
@@ -33,7 +33,7 @@ final List<Map<String, Object>> MAIN_PAGES = [
     'routerPath': '/resetPwd',
     'widget': DeferredWidget(resetPwd.loadLibrary, () => resetPwd.ResetPwdWidget()),
   },
-  {'routerPath': '/invoice', 'widget': DeferredWidget(invoice.loadLibrary, () => invoice.InvoicePage())},
+  {'routerPath': '/safety', 'widget': DeferredWidget(safety.loadLibrary, () => safety.SafetyCutoffSettings())},
   {'routerPath': '/inbox', 'widget': DeferredWidget(inbox.loadLibrary, () => inbox.InboxWidget())},
   {'routerPath': '/settings', 'widget': DeferredWidget(settings.loadLibrary, () => settings.SettingsPage())},
   {'routerPath': '/basicChart', 'widget': DeferredWidget(chart.loadLibrary, () => chart.ChartPage())},

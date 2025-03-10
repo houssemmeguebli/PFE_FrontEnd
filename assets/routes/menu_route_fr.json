@@ -2,39 +2,41 @@
   {
     "menuList": [
       {
-        "icon": "assets/sidebar/dashboard.svg",
-        "menuName": "Dashboard",
+        "icon": "assets/sidebar/chart.svg",
+        "menuName": "Tableau de bord",
         "path": "/"
       },
       {
-        "icon": "assets/sidebar/invoice.svg",
-        "menuName": "Limites de sécurité",
-        "path": "/invoice"
+        "icon": "assets/sidebar/dashboard.svg",
+        "menuName": "Seuils de sécurité",
+        "path": "/safety"
       },
       {
-        "icon": "assets/sidebar/TestLogo.svg",
+        "icon": "assets/sidebar/page.svg",
         "menuName": "Tests",
         "childList": [
           {
-            "menuName": "Controle Manualle ",
+            "icon": "assets/sidebar/setting.svg",
+            "menuName": "Contrôle manuel",
             "path": "/manual-control"
           },
           {
-            "menuName": "Controle Automatique ",
+            "icon": "assets/sidebar/task.svg",
+            "menuName": "Contrôle automatique",
             "path": "/automatic-control"
           }
         ]
       },
       {
         "icon": "assets/sidebar/setting.svg",
-        "menuName": "Settings",
+        "menuName": "Paramètres",
         "path": "/settings"
       },
       {
         "icon": "assets/sidebar/profile.svg",
-        "menuName": "Profile",
+        "menuName": "Profil",
         "path": "/profile"
-      },
+      }
     ]
   }
 ]
