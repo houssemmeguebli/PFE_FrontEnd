@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketService {
-  final String serverUrl = "ws://localhost:5000";
+  final String serverUrl = "ws://192.168.1.6:5000";
   late WebSocketChannel _channel;
   late StreamController<Map<String, dynamic>> _streamController;
 

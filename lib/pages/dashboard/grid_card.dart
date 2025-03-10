@@ -23,12 +23,16 @@ class _GridCardState extends State<GridCard> {
     super.initState();
     _webSocketService.stream.listen((data) {
       if (data.containsKey('event') && data['event'] == 'randomValue') {
+        // Ensure the value is treated as a double
+        double value = (data['value'] is int) ? (data['value'] as int).toDouble() : data['value'];
+
         setState(() {
-          sensorValue = _formatSensorValue(widget.name, data['value']);
+          sensorValue = _formatSensorValue(widget.name, value);
         });
       }
     });
   }
+
 
   @override
   void dispose() {
@@ -41,18 +45,26 @@ class _GridCardState extends State<GridCard> {
     return ScreenTypeLayout.builder(
       desktop: contentDesktopWidget,
       mobile: contentMobileWidget,
-      tablet: contentMobileWidget,
+      tablet: contentTabletWidget,
     );
   }
 
+  // Content for Desktop
   Widget contentDesktopWidget(BuildContext context) {
     return _itemCardWidget(context, widget.name, sensorValue, widget.unit);
   }
 
+  // Content for Mobile
   Widget contentMobileWidget(BuildContext context) {
     return _itemCardWidget(context, widget.name, sensorValue, widget.unit);
   }
 
+  // Content for Tablet
+  Widget contentTabletWidget(BuildContext context) {
+    return _itemCardWidget(context, widget.name, sensorValue, widget.unit);
+  }
+
+  // Common method to create the card
   Widget _itemCardWidget(BuildContext context, String name, String value, String unit) {
     return CommonCard(
       height: 100,
@@ -122,7 +134,7 @@ class _GridCardState extends State<GridCard> {
       case "push":
         return Icons.publish_sharp;
       default:
-        return Icons.speed;
+        return Icons.device_unknown; // Default icon for unknown sensors
     }
   }
 
@@ -132,17 +144,17 @@ class _GridCardState extends State<GridCard> {
       case "temperature":
         return "${value.toStringAsFixed(1)}°C";
       case "pressure":
-        return "${(value / 10).toStringAsFixed(2)} ";
+        return "${(value / 10).toStringAsFixed(2)} hPa";
       case "tension":
-        return "${(value ).toStringAsFixed(2)} ";
+        return "${value.toStringAsFixed(2)} V";
       case "courant":
-        return "${(value / 50).toStringAsFixed(2)} ";
+        return "${(value / 50).toStringAsFixed(2)} A";
       case "couple":
-        return "${(value / 100).toStringAsFixed(2)} ";
+        return "${(value / 100).toStringAsFixed(2)} N·m";
       case "vibration":
-        return "${(value / 200).toStringAsFixed(2)}";
+        return "${(value / 200).toStringAsFixed(2)} m/s²";
       default:
-        return "${value.toStringAsFixed(2)}";
+        return "${value.toStringAsFixed(2)}"; // Default formatting for unknown sensors
     }
   }
 }

@@ -1,0 +1,2 @@
+C:/Users/megbl/Desktop/PFE_FrontEnd/frontEnd/android/app/.cxx/Debug/1x2rt5g3/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/megbl/Desktop/PFE_FrontEnd/frontEnd/android/app/.cxx/Debug/1x2rt5g3/armeabi-v7a/CMakeFiles/rebuild_cache.dir
