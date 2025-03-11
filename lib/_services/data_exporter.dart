@@ -9,25 +9,43 @@ import 'package:path_provider/path_provider.dart';
 import 'data_exporter_web.dart' if (dart.library.io) 'data_exporter_stub.dart';
 
 class DataExporter {
+  /// Parses a timestamp in "DD/MM/YYYY HH:MM:SS" format to DateTime
+  static DateTime? _parseTimestamp(String timestamp) {
+    try {
+      List<String> dateTimeParts = timestamp.split(' '); // Split date and time
+      List<String> dateParts = dateTimeParts[0].split('/'); // Split DD/MM/YYYY
+      List<String> timeParts = dateTimeParts[1].split(':'); // Split HH:MM:SS
+
+      DateTime dateTime = DateTime(
+        int.parse(dateParts[2]), // Year (YYYY)
+        int.parse(dateParts[1]), // Month (MM)
+        int.parse(dateParts[0]), // Day (DD)
+        int.parse(timeParts[0]), // Hour (HH)
+        int.parse(timeParts[1]), // Minute (MM)
+        int.parse(timeParts[2]), // Second (SS)
+      );
+
+      debugPrint("Parsed DateTime: $dateTime from timestamp: $timestamp");
+      return dateTime;
+    } catch (e) {
+      debugPrint('Invalid timestamp format: $timestamp, error: $e');
+      return null;
+    }
+  }
+
   static Future<void> exportToCsv({
     required List<Map<String, dynamic>> sensorData,
     required BuildContext context,
   }) async {
     debugPrint('Exporting CSV. Data length: ${sensorData.length}');
+
     if (sensorData.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No data available for the last 10 minutes',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      );
+      _showSnackBar(context, 'No data available for the last 10 minutes');
       return;
     }
 
     // Define sensor names and units
-    final sensorUnits = {
+    final Map<String, String> sensorUnits = {
       'Tension': 'V',
       'Current': 'A',
       'Torque': 'N·m',
@@ -41,47 +59,40 @@ class DataExporter {
     };
 
     // Prepare header row
-    final header = [
+    final List<String> header = [
       'Time',
       ...sensorUnits.keys.map((name) => '$name (${sensorUnits[name]})'),
     ];
 
     // Group sensor data by timestamp
     final Map<String, Map<String, double>> groupedData = {};
-    final tenMinutesAgo = DateTime.now().subtract(const Duration(minutes: 10));
+    final DateTime tenMinutesAgo = DateTime.now().subtract(const Duration(minutes: 10));
 
     for (var entry in sensorData) {
-      final timestamp = entry['timestamp'] as String;
-      final sensorName = entry['sensor'] as String;
-      final value = (entry['value'] as double);
+      final String timestamp = entry['timestamp'] as String;
+      final String sensorName = entry['sensor'] as String;
+      final double value = (entry['value'] as double);
 
-      // Parse custom timestamp back to DateTime for filtering
-      final dateParts = timestamp.split(' ')[0].split('/');
-      final timeParts = timestamp.split(' ')[1].split(':');
-      final dateTime = DateTime(
-        int.parse(dateParts[2]), // yyyy
-        int.parse(dateParts[1]), // mm
-        int.parse(dateParts[0]), // dd
-        int.parse(timeParts[0]), // hh
-        int.parse(timeParts[1]), // mm
-        int.parse(timeParts[2]), // ss
-      );
+      debugPrint("Raw timestamp before parsing: $timestamp");
+
+      // Parse timestamp to ensure it's valid and within 10 minutes
+      DateTime? dateTime = _parseTimestamp(timestamp);
+      if (dateTime == null) {
+        debugPrint("Skipping entry due to invalid timestamp: $timestamp");
+        continue; // Skip invalid timestamps
+      }
 
       if (dateTime.isAfter(tenMinutesAgo)) {
         groupedData[timestamp] ??= {};
         groupedData[timestamp]![sensorName] = value;
+        debugPrint("Added to groupedData: $timestamp -> $sensorName: $value");
+      } else {
+        debugPrint("Timestamp $timestamp is older than 10 minutes, skipped");
       }
     }
 
     if (groupedData.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'No data available for the last 10 minutes',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      );
+      _showSnackBar(context, 'No data available for the last 10 minutes');
       return;
     }
 
@@ -91,9 +102,10 @@ class DataExporter {
       ...groupedData.entries.map((entry) {
         final timestamp = entry.key;
         final values = entry.value;
+        debugPrint("CSV row timestamp: $timestamp");
         return [
-          timestamp,
-          ...sensorUnits.keys.map((name) => (values[name] ?? 0.0).toStringAsFixed(2)),
+          timestamp, // Already in "DD/MM/YYYY HH:MM:SS" format
+          ...sensorUnits.keys.map((name) => (values[name] ?? 0.0).toStringAsFixed(3)),
         ];
       }),
     ];
@@ -102,44 +114,40 @@ class DataExporter {
     String csv = const ListToCsvConverter().convert(csvData);
     String fileName = 'sensor_data_${DateTime.now().toIso8601String().replaceAll(':', '-')}.csv';
 
+    // Handle CSV export for web and non-web platforms
     if (kIsWeb) {
       exportToCsvWeb(csv, fileName);
       debugPrint('CSV download triggered');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Color(0xFF109FDB),
-          content: Text(
-            'CSV file downloaded',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      );
+      _showSnackBar(context, 'CSV file downloaded');
     } else {
-      try {
-        final directory = await getApplicationDocumentsDirectory();
-        final file = File('${directory.path}/$fileName');
-        await file.writeAsString(csv);
-        debugPrint('CSV saved at: ${file.path}');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFF109FDB),
-            content: Text(
-              'CSV saved at: ${file.path}',
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      } catch (e) {
-        debugPrint('Error exporting CSV: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Failed to export CSV',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        );
-      }
+      await _saveCsvToFile(csv, fileName, context);
     }
+  }
+
+  /// Saves CSV to a local file
+  static Future<void> _saveCsvToFile(String csv, String fileName, BuildContext context) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/$fileName');
+      await file.writeAsString(csv);
+      debugPrint('CSV saved at: ${file.path}');
+      _showSnackBar(context, 'CSV saved at: ${file.path}');
+    } catch (e) {
+      debugPrint('Error exporting CSV: $e');
+      _showSnackBar(context, 'Failed to export CSV');
+    }
+  }
+
+  /// Displays a Snackbar message
+  static void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF109FDB),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+    );
   }
 }
