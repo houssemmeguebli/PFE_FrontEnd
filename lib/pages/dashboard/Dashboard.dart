@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flareline/pages/dashboard/grid_card.dart';
+import 'package:flareline/pages/dashboard/ChartFilterWidget.dart'; // New import
 import 'package:flareline/pages/layout.dart';
+import 'package:responsive_builder/responsive_builder.dart'; // Add this package
 import '../../_services/data_exporter.dart';
 import '../../_services/websocket_service.dart';
 import 'SensorDataWidget.dart';
@@ -41,6 +43,14 @@ class __DashboardContentState extends State<_DashboardContent> {
     "Push": 0.0,
   };
   final List<Map<String, dynamic>> _historicalData = [];
+  List<String> _visibleCharts = [
+    "Tension",
+    "Current",
+    "Torque",
+    "Temperature",
+    "Pressure",
+    "Vibration"
+  ]; // Default visible charts
 
   @override
   void initState() {
@@ -101,7 +111,6 @@ class __DashboardContentState extends State<_DashboardContent> {
               _historicalData.add({'sensor': 'Push', 'value': _sensorValues["Push"]!, 'timestamp': timestamp});
             }
 
-            // Remove data older than 10 minutes
             _historicalData.removeWhere((entry) =>
                 DateTime.parse(entry['timestamp'].split(' ')[0].split('/').reversed.join('-') + 'T' + entry['timestamp'].split(' ')[1] + 'Z')
                     .isBefore(now.subtract(const Duration(minutes: 10))));
@@ -134,6 +143,12 @@ class __DashboardContentState extends State<_DashboardContent> {
     );
   }
 
+  void _onFilterChanged(List<String> selectedCharts) {
+    setState(() {
+      _visibleCharts = selectedCharts;
+    });
+  }
+
   @override
   void dispose() {
     _webSocketService.dispose();
@@ -154,31 +169,52 @@ class __DashboardContentState extends State<_DashboardContent> {
       {"name": "Push", "unit": ""},
     ];
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            _buildGrid(sensors),
-            const SizedBox(height: 16),
-            _buildExportButton(),
-            const SizedBox(height: 16),
-            _buildSensorDataWidgets(),
-          ],
-        ),
-      ),
+    final List<String> chartNames = [
+      "Tension",
+      "Current",
+      "Torque",
+      "Temperature",
+      "Pressure",
+      "Vibration"
+    ];
+
+    return ResponsiveBuilder(
+      builder: (context, sizingInformation) {
+        final bool isMobile = sizingInformation.isMobile;
+        final bool isTablet = sizingInformation.isTablet;
+
+        return SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                _buildGrid(sensors, isMobile, isTablet),
+                const SizedBox(height: 16),
+                _buildExportButton(),
+                const SizedBox(height: 16),
+                ChartFilterWidget(
+                  chartNames: chartNames,
+                  onFilterChanged: _onFilterChanged,
+                ),
+                const SizedBox(height: 16),
+                _buildSensorDataWidgets(isMobile),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildGrid(List<Map<String, String>> sensors) {
+  Widget _buildGrid(List<Map<String, String>> sensors, bool isMobile, bool isTablet) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 5,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: isMobile ? 1 : (isTablet ? 3 : 5), // Adjust columns based on screen size
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 1.5,
+        childAspectRatio: isMobile ? 1.2 : 1.5, // Adjust aspect ratio for mobile
       ),
       itemCount: sensors.length,
       itemBuilder: (context, index) {
@@ -214,25 +250,18 @@ class __DashboardContentState extends State<_DashboardContent> {
     );
   }
 
-  Widget _buildSensorDataWidgets() {
+  Widget _buildSensorDataWidgets(bool isMobile) {
     return Column(
-      children: [
-        _buildSensorRow("Tension"),
-        const SizedBox(height: 16),
-        _buildSensorRow("Current"),
-        const SizedBox(height: 16),
-        _buildSensorRow("Torque"),
-        const SizedBox(height: 16),
-        _buildSensorRow("Temperature"),
-        const SizedBox(height: 16),
-        _buildSensorRow("Pressure"),
-        const SizedBox(height: 16),
-        _buildSensorRow("Vibration"),
-      ],
+      children: _visibleCharts.map((sensorType) => Column(
+        children: [
+          _buildSensorRow(sensorType, isMobile),
+          const SizedBox(height: 16),
+        ],
+      )).toList(),
     );
   }
 
-  Widget _buildSensorRow(String sensorType) {
+  Widget _buildSensorRow(String sensorType, bool isMobile) {
     return Row(
       children: [
         const SizedBox(width: 16),

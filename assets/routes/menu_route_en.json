@@ -33,6 +33,11 @@
         "path": "/settings"
       },
       {
+        "icon": "assets/sidebar/page.svg",
+        "menuName": "Reports",
+        "path": "/reports"
+      },
+      {
         "icon": "assets/sidebar/profile.svg",
         "menuName": "Profile",
         "path": "/profile"

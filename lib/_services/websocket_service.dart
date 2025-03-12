@@ -39,7 +39,6 @@ class WebSocketService {
         },
         onError: (error) {
           debugPrint("WebSocket error: $error");
-          _streamController?.addError(error);
           _reconnect();
         },
         onDone: () {

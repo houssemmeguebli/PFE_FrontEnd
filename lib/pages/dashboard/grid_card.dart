@@ -18,33 +18,73 @@ class GridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenTypeLayout.builder(
-      desktop: contentDesktopWidget,
-      mobile: contentMobileWidget,
-      tablet: contentTabletWidget,
+      desktop: (context) => contentDesktopWidget(context),
+      tablet: (context) => contentTabletWidget(context),
+      mobile: (context) => contentMobileWidget(context),
     );
   }
 
   // Content for Desktop
   Widget contentDesktopWidget(BuildContext context) {
-    return _itemCardWidget(context, name, value, unit);
-  }
-
-  // Content for Mobile
-  Widget contentMobileWidget(BuildContext context) {
-    return _itemCardWidget(context, name, value, unit);
+    return _itemCardWidget(
+      context,
+      name: name,
+      value: value,
+      unit: unit,
+      height: 120,
+      padding: 16,
+      iconSize: 20,
+      valueFontSize: 20,
+      labelFontSize: 14,
+    );
   }
 
   // Content for Tablet
   Widget contentTabletWidget(BuildContext context) {
-    return _itemCardWidget(context, name, value, unit);
+    return _itemCardWidget(
+      context,
+      name: name,
+      value: value,
+      unit: unit,
+      height: 100,
+      padding: 12,
+      iconSize: 18,
+      valueFontSize: 18,
+      labelFontSize: 12,
+    );
   }
 
-  // Common method to create the card
-  Widget _itemCardWidget(BuildContext context, String name, String value, String unit) {
+  // Content for Mobile
+  Widget contentMobileWidget(BuildContext context) {
+    return _itemCardWidget(
+      context,
+      name: name,
+      value: value,
+      unit: unit,
+      height: 80,
+      padding: 10,
+      iconSize: 16,
+      valueFontSize: 16,
+      labelFontSize: 10,
+    );
+  }
+
+  // Common method to create the card with responsive parameters
+  Widget _itemCardWidget(
+      BuildContext context, {
+        required String name,
+        required String value,
+        required String unit,
+        required double height,
+        required double padding,
+        required double iconSize,
+        required double valueFontSize,
+        required double labelFontSize,
+      }) {
     return CommonCard(
-      height: 100,
+      height: height,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(padding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -52,32 +92,46 @@ class GridCard extends StatelessWidget {
             // Sensor Icon
             ClipOval(
               child: Container(
-                width: 20,
-                height: 20,
+                width: iconSize,
+                height: iconSize,
                 alignment: Alignment.center,
                 color: Colors.grey.shade200,
                 child: Icon(
                   _getSensorIcon(name),
                   color: GlobalColors.sideBar,
+                  size: iconSize * 0.8, // Slightly smaller than container
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: padding * 0.75), // Dynamic spacing
             // Sensor Value
             Text(
               value,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: valueFontSize,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: padding * 0.5),
             // Sensor Name
             Text(
               name,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(
+                fontSize: labelFontSize,
+                color: Colors.grey.shade700,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
             // Sensor Unit
             Text(
               unit,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(
+                fontSize: labelFontSize,
+                color: Colors.grey.shade700,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

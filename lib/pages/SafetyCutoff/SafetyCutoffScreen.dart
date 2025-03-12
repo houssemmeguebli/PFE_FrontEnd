@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-// Uncomment if using Google Fonts
-// import 'package:google_fonts/google_fonts.dart';
 import 'package:flareline/pages/layout.dart'; // Assuming this exists
 
 class SafetyCutoffSettings extends LayoutWidget {

@@ -127,7 +127,7 @@ class _SideBarWidgetState extends State<SideBarWidget> {
           child: Text(
             widget.appName ?? '',
             style: TextStyle(
-              color: isDark ? Colors.white : FlarelineColors.darkBlackText,
+              color: isDark ? Colors.white : Colors.lightBlue,
               fontSize: widget.logoFontSize,
             ),
           ),
